@@ -3,7 +3,7 @@
 import requests
 import json
 
-from service.bechi.config.secret import ID_CHECK_APPCODE
+from bechi.config.secret import ID_CHECK_APPCODE
 
 url = 'https://1.api.apistore.cn/idcard3'
 

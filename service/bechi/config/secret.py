@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from celery.schedules import crontab
 
-from service.bechi.config.http_config import API_HOST
+from bechi.config.http_config import API_HOST
 
 env = os.environ
 BASEDIR = os.path.abspath(os.path.join(__file__, '../../../'))

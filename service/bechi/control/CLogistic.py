@@ -5,16 +5,16 @@ from datetime import datetime
 
 from flask import request
 
-from service.bechi.common.error_response import StatusError
-from service.bechi.common.logistics import Logistics
-from service.bechi.common.params_validates import parameter_required
-from service.bechi.common.request_handler import gennerc_log
-from service.bechi.common.success_response import Success
-from service.bechi.common.token_handler import token_required
-from service.bechi.config.enums import OrderMainStatus, LogisticsSignStatus
-from service.bechi.extensions.register_ext import db
-from service.bechi.models.trade import LogisticsCompnay, OrderLogistics, OrderMain
-from service.bechi.service.STrade import STrade
+from bechi.common.error_response import StatusError
+from bechi.common.logistics import Logistics
+from bechi.common.params_validates import parameter_required
+from bechi.common.request_handler import gennerc_log
+from bechi.common.success_response import Success
+from bechi.common.token_handler import token_required
+from bechi.config.enums import OrderMainStatus, LogisticsSignStatus
+from bechi.extensions.register_ext import db
+from bechi.models.trade import LogisticsCompnay, OrderLogistics, OrderMain
+from bechi.service.STrade import STrade
 
 
 class CLogistic:

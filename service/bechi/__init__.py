@@ -7,29 +7,28 @@ from flask import current_app, Blueprint, Flask as _Flask, Request as _Request
 from werkzeug.exceptions import HTTPException
 from flask.json import JSONEncoder as _JSONEncoder
 from flask_cors import CORS
-
-# from service.bechi.api.v1.AAuth import AAuth
-# from service.bechi.api.v1.ABrands import ABrands
-# from service.bechi.api.v1.ACart import ACart
-# from service.bechi.api.v1.ACategory import ACategory
-# from service.bechi.api.v1.ACoupon import ACoupon
-# from service.bechi.api.v1.AIndex import AIndex
-# from service.bechi.api.v1.AItems import AItems
-from service.bechi.api.v1.AFile import AFile
-# from service.bechi.api.v1.ALogistic import ALogistic
-# from service.bechi.api.v1.AOrder import AOrder
-# from service.bechi.api.v1.AProduct import AProduct
-# from service.bechi.api.v1.ARefund import ARefund
-# from service.bechi.api.v1.ASku import ASku
-from service.bechi.api.v1.AUser import AUser
-# from service.bechi.api.v1.ANews import ANews
-# from service.bechi.api.v1.AAddress import AAddress
-# from service.bechi.api.v1.AWechatShareParams import AWechatShareParams
-# from service.bechi.api.v1.ASigninSetting import ASigninSetting
-from service.bechi.common.request_handler import error_handler, request_first_handler
-from service.bechi.config.secret import DefaltSettig
-from service.bechi.extensions.register_ext import register_ext
-from service.bechi.extensions.loggers import LoggerHandler
+# from bechi.api.v1.AAuth import AAuth
+# from bechi.api.v1.ABrands import ABrands
+# from bechi.api.v1.ACart import ACart
+# from bechi.api.v1.ACategory import ACategory
+# from bechi.api.v1.ACoupon import ACoupon
+# from bechi.api.v1.AIndex import AIndex
+# from bechi.api.v1.AItems import AItems
+from bechi.api.v1.AFile import AFile
+# from bechi.api.v1.ALogistic import ALogistic
+# from bechi.api.v1.AOrder import AOrder
+# from bechi.api.v1.AProduct import AProduct
+# from bechi.api.v1.ARefund import ARefund
+# from bechi.api.v1.ASku import ASku
+from bechi.api.v1.AUser import AUser
+# from bechi.api.v1.ANews import ANews
+# from bechi.api.v1.AAddress import AAddress
+# from bechi.api.v1.AWechatShareParams import AWechatShareParams
+# from bechi.api.v1.ASigninSetting import ASigninSetting
+from bechi.common.request_handler import error_handler, request_first_handler
+from bechi.config.secret import DefaltSettig
+from bechi.extensions.register_ext import register_ext
+from bechi.extensions.loggers import LoggerHandler
 
 
 class JSONEncoder(_JSONEncoder):
@@ -56,7 +55,7 @@ class JSONEncoder(_JSONEncoder):
 
 class Request(_Request):
     def on_json_loading_failed(self, e):
-        from service.bechi.common.error_response import ParamsError
+        from bechi.common.error_response import ParamsError
         if current_app is not None and current_app.debug:
             raise ParamsError('Failed to decode JSON object: {0}'.format(e))
         raise ParamsError('参数异常')

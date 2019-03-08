@@ -6,7 +6,7 @@ import os.path
 import sys
 
 sys.path.append(os.path.realpath('.'))
-from service.bechi.common.base_model import DB_PARAMS
+from bechi.common.base_model import DB_PARAMS
 
 from bechi import models
 # this is the Alembic Config object, which provides

@@ -2,7 +2,7 @@
 import os
 import cv2
 
-from service.bechi.common.error_response import ParamsError
+from bechi.common.error_response import ParamsError
 
 """ 视频截取缩略图 """
 

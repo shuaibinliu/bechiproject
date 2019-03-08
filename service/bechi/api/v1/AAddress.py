@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from service.bechi.common.base_resource import Resource
-from service.bechi.control.CUser import CUser
+from bechi.common.base_resource import Resource
+from bechi.control.CUser import CUser
 
 
 class AAddress(Resource):

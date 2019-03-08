@@ -2,7 +2,7 @@
 import requests
 from flask import current_app
 
-from service.bechi.config.secret import kd_api_url, kd_api_code
+from bechi.config.secret import kd_api_url, kd_api_code
 
 
 class Logistics(object):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from service.bechi import create_app
-from service.bechi.extensions.tasks import celery
+from bechi import create_app
+from bechi.extensions.tasks import celery
 
 
 app = create_app()

@@ -6,12 +6,12 @@ import json
 
 from flask import current_app
 
-from service.bechi.config.enums import ApprovalType, ApplyStatus, ApprovalAction, ApplyFrom, UserMediaType, \
+from bechi.config.enums import ApprovalType, ApplyStatus, ApprovalAction, ApplyFrom, UserMediaType, \
     TrialCommodityStatus
-from service.bechi.common.error_response import SystemError, ParamsError
-from service.bechi.common.request_handler import gennerc_log
-from service.bechi.extensions.register_ext import db
-from service.bechi.models import User, Supplizer, Admin,  News, CashNotes, UserWallet, UserMedia, Products, ActivationCodeApply
+from bechi.common.error_response import SystemError, ParamsError
+from bechi.common.request_handler import gennerc_log
+from bechi.extensions.register_ext import db
+from bechi.models import User, Supplizer, Admin,  News, CashNotes, UserWallet, UserMedia, Products, ActivationCodeApply
 from json import JSONEncoder as _JSONEncoder
 
 

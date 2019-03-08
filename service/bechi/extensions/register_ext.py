@@ -7,13 +7,13 @@ from alipay import AliPay
 from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy as _SQLAlchemy
 
-from service.bechi.common.query_session import Query
-from service.bechi.config.secret import DB_PARAMS, alipay_appid, alipay_notify, app_private_path, alipay_public_key_path, \
+from bechi.common.query_session import Query
+from bechi.config.secret import DB_PARAMS, alipay_appid, alipay_notify, app_private_path, alipay_public_key_path, \
     appid, mch_id, mch_key, wxpay_notify_url, BASEDIR, server_dir, cache_redis, apiclient_key, apiclient_cert
-from service.bechi.extensions.weixin import WeixinPay
+from bechi.extensions.weixin import WeixinPay
 from .loggers import LoggerHandler
 from .weixin.mp import WeixinMP
-from service.bechi.config.secret import SERVICE_APPID, SERVICE_APPSECRET, SUBSCRIBE_APPID, SUBSCRIBE_APPSECRET
+from bechi.config.secret import SERVICE_APPID, SERVICE_APPSECRET, SUBSCRIBE_APPID, SUBSCRIBE_APPSECRET
 
 
 class SQLAlchemy(_SQLAlchemy):
@@ -61,5 +61,5 @@ def register_ext(app):
     db.init_app(app)
     cache.init_app(app)
     LoggerHandler(app, file='/tmp/bechi/').error_handler()
-    from service.bechi.extensions.tasks import celery
+    from bechi.extensions.tasks import celery
     celery.init_app(app)

@@ -6,8 +6,8 @@ from sqlalchemy import orm, Column as _Column, Boolean, DateTime
 from sqlalchemy.ext.declarative import declarative_base, AbstractConcreteBase
 from sqlalchemy import create_engine
 
-from service.bechi.config.http_config import MEDIA_HOST
-from service.bechi.extensions.register_ext import db
+from bechi.config.http_config import MEDIA_HOST
+from bechi.extensions.register_ext import db
 from .error_response import NotFound
 from ..config.secret import DB_PARAMS
 mysql_engine = create_engine(DB_PARAMS, encoding='utf-8', echo=False, pool_pre_ping=True,)

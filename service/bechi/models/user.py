@@ -2,7 +2,7 @@
 import datetime
 from sqlalchemy import Integer, String, Text, Float, Boolean, DateTime, DECIMAL
 
-from service.bechi.common.base_model import Base, Column
+from bechi.common.base_model import Base, Column
 
 
 class User(Base):
@@ -12,28 +12,20 @@ class User(Base):
     __tablename__ = "User"
     USid = Column(String(64), primary_key=True)
     USname = Column(String(255), nullable=False, comment='用户名')
-    # USrealname = Column(String(255), comment='用户真实姓名')
+    USrealname = Column(String(255), comment='用户真实姓名')
     UStelphone = Column(String(13), comment='手机号')
     USgender = Column(Integer, default=0, comment='性别 {0: man, 1: woman')
     USbirthday = Column(DateTime, comment='出生日期')
-    # USidentification = Column(String(24), comment='身份证号')
+    USidentification = Column(String(24), comment='身份证号')
     USheader = Column(Text, default='用户头像', url=True)
     USopenid1 = Column(Text, comment='服务号 openid')
     USopenid2 = Column(Text, comment='公众号2 openid')
-    # USsupper1 = Column(String(64), comment='一级代理商id')
-    # USsupper2 = Column(String(64), comment='二级代理商id')
-    # USsupper3 = Column(String(64), comment='三级代理商id')
-    # USCommission1 = Column(DECIMAL(scale=2), comment='当用户作为一级时, 佣金分成')       # 一级佣金分成比例
-    # USCommission2 = Column(DECIMAL(scale=2), comment='佣金分成')       # 二级佣金分成比例
-    # USCommission3 = Column(DECIMAL(scale=2), comment='佣金分成')       # 三级佣金分成比例
     USintegral = Column(Integer, comment='积分')
-    CommisionLevel = Column(Integer, default=1)
-    USlevel = Column(Integer, default=1, comment='等级 {1：普通游客，2：代理商, 3: 申请成代理商中}')
-    # USfrom = Column(Integer, default=1, comment='注册来源 {1: 微信h5, 2: app}')
+    # CommisionLevel = Column(Integer, default=1)
+    USlevel = Column(Integer, default=1, comment='等级 {1：普通游客 }')
     USqrcode = Column(Text, url=True, comment='用户二维码')
     USpaycode = Column(Text, comment='支付密码')
     UScontinuous = Column(Integer, default=0, comment='连续签到天数')
-    UStoAgentTime = Column(DateTime, comment='成为代理商时间')
 
 
 class UserLoginTime(Base):
@@ -45,21 +37,21 @@ class UserLoginTime(Base):
     ULtype = Column(Integer, default=1, comment='登录用户类型 1: 用户，2 管理员')
 
 
-class UserCommission(Base):
-    """用户佣金"""
-    __tablename__ = 'UserCommission'
-    UCid = Column(String(64), primary_key=True)
-    UCcommission = Column(DECIMAL(precision=28, scale=2), comment='获取佣金')
-    USid = Column(String(64), comment='用户或供应商id 0表示平台')
-    CommisionFor = Column(Integer, default=20, comment='0 平台, 10 供应商, 20 普通用户')
-    FromUsid = Column(String(64), comment='订单来源用户')
-    UCstatus = Column(Integer, default=0, comment='佣金状态{-1: 异常, 0：预期到账, 1: 已到账, 2: 已提现}')
-    UCtype = Column(Integer, default=0, comment='收益类型 0：佣金 1：新人商品 2：押金')
-    UCendTime = Column(DateTime, comment='预期到账时间')
-    PRtitle = Column(String(255), comment='商品标题')
-    SKUpic = Column(Text, url=True, comment='商品sku主图')
-    OMid = Column(String(64), comment='佣金来源订单')
-    OPid = Column(String(64), comment='分单id')
+# class UserCommission(Base):
+#     """用户佣金"""
+#     __tablename__ = 'UserCommission'
+#     UCid = Column(String(64), primary_key=True)
+#     UCcommission = Column(DECIMAL(precision=28, scale=2), comment='获取佣金')
+#     USid = Column(String(64), comment='用户或供应商id 0表示平台')
+#     CommisionFor = Column(Integer, default=20, comment='0 平台, 10 供应商, 20 普通用户')
+#     FromUsid = Column(String(64), comment='订单来源用户')
+#     UCstatus = Column(Integer, default=0, comment='佣金状态{-1: 异常, 0：预期到账, 1: 已到账, 2: 已提现}')
+#     UCtype = Column(Integer, default=0, comment='收益类型 0：佣金 1：新人商品 2：押金')
+#     UCendTime = Column(DateTime, comment='预期到账时间')
+#     PRtitle = Column(String(255), comment='商品标题')
+#     SKUpic = Column(Text, url=True, comment='商品sku主图')
+#     OMid = Column(String(64), comment='佣金来源订单')
+#     OPid = Column(String(64), comment='分单id')
 
 
 class IdentifyingCode(Base):
@@ -92,7 +84,7 @@ class Admin(Base):
     ADfirstpwd = Column(Text, comment=' 初始密码 明文保存')
     ADfirstname = Column(Text, comment=' 初始用户名')
     ADheader = Column(Text, comment='头像', url=True)
-    ADlevel = Column(Integer, default=2, comment='管理员等级，{1: 超级管理员, 2: 普通管理员 3: 代理商}')
+    ADlevel = Column(Integer, default=2, comment='管理员等级，{1: 超级管理员, 2: 普通管理员 }')
     ADstatus = Column(Integer, default=0, comment='账号状态，{0:正常, 1: 被冻结, 2: 已删除}')
     # ADcreateTime = Column(DateTime, default=datetime.now(), comment='创建时间')
 
@@ -156,7 +148,7 @@ class IDCheck(Base):
 
 class UserIntegral (Base):
     """用户积分表  ps 表名与类名不同"""
-    __tablename__ = 'UserSignIn'
+    __tablename__ = 'UserIntegral'
     UIid = Column(String(64), primary_key=True)
     USid = Column(String(64), comment='用户id')
     UIintegral = Column(Integer, comment='该动作产生的积分变化数')
@@ -187,46 +179,46 @@ class AddressArea(Base):
     ACid = Column(String(8), nullable=False, comment='市名')
 
 
-class UserSalesVolume(Base):
-    """用户销售额 按月统计，需要总额需要累加 只累加自己的订单销售额"""
-    __tablename__ = 'UserSalesvolume'
-    USVid = Column(String(64), primary_key=True)
-    USid = Column(String(64), comment='用户id')
-    USVamount = Column(DECIMAL(precision=28, scale=2), comment='月度总额')
-    USVamountagent = Column(DECIMAL(precision=28, scale=2), comment='月度代理商直销总额')
+# class UserSalesVolume(Base):
+#     """用户销售额 按月统计，需要总额需要累加 只累加自己的订单销售额"""
+#     __tablename__ = 'UserSalesvolume'
+#     USVid = Column(String(64), primary_key=True)
+#     USid = Column(String(64), comment='用户id')
+#     USVamount = Column(DECIMAL(precision=28, scale=2), comment='月度总额')
+#     USVamountagent = Column(DECIMAL(precision=28, scale=2), comment='月度代理商直销总额')
 
-
-class UserInvitation(Base):
-    """用户邀请记录表"""
-    __tablename__ = 'UserInvitation'
-    UINid = Column(String(64), primary_key=True)
-    USInviter = Column(String(64), comment='邀请人')
-    USInvited = Column(String(64), comment='被邀请人')
-
-
-class UserWallet(Base):
-    """用户钱包"""
-    __tablename__ = 'UserWallet'
-    UWid = Column(String(64), primary_key=True)
-    USid = Column(String(64), comment='用户id')
-    CommisionFor = Column(Integer, default=20, comment='0 平台, 10 供应商, 20 普通用户')
-    UWbalance = Column(DECIMAL(precision=28, scale=2), comment='用户账户余额')
-    UWtotal = Column(DECIMAL(precision=28, scale=2), comment='用户账户总额')
-    UWcash = Column(DECIMAL(precision=28, scale=2), comment='用户账号可提现余额')
-    UWexpect = Column(DECIMAL(precision=28, scale=2), comment='用户账号预期到账金额')
-
-
-class CashNotes(Base):
-    """用户提现记录"""
-    __tablename__ = 'CashNotes'
-    CNid = Column(String(64), primary_key=True)
-    USid = Column(String(64), comment='用户id')
-    CommisionFor = Column(Integer, default=20, comment='0 平台, 10 供应商, 20 普通用户')
-    CNbankName = Column(Text, comment='开户行')
-    CNbankDetail = Column(Text, comment='开户网点详情')
-    CNcardNo = Column(String(32), comment='卡号')
-    CNcashNum = Column(DECIMAL(precision=28, scale=2), comment='提现金额')
-    CNcardName = Column(String(32), comment='开户人')
-    CNstatus = Column(Integer, default=0, comment='提现状态 0: 审核中, 1: 审核通过, -1:拒绝')
-    CNrejectReason = Column(Text, comment='拒绝理由')
+#
+# class UserInvitation(Base):
+#     """用户邀请记录表"""
+#     __tablename__ = 'UserInvitation'
+#     UINid = Column(String(64), primary_key=True)
+#     USInviter = Column(String(64), comment='邀请人')
+#     USInvited = Column(String(64), comment='被邀请人')
+#
+#
+# class UserWallet(Base):
+#     """用户钱包"""
+#     __tablename__ = 'UserWallet'
+#     UWid = Column(String(64), primary_key=True)
+#     USid = Column(String(64), comment='用户id')
+#     CommisionFor = Column(Integer, default=20, comment='0 平台, 10 供应商, 20 普通用户')
+#     UWbalance = Column(DECIMAL(precision=28, scale=2), comment='用户账户余额')
+#     UWtotal = Column(DECIMAL(precision=28, scale=2), comment='用户账户总额')
+#     UWcash = Column(DECIMAL(precision=28, scale=2), comment='用户账号可提现余额')
+#     UWexpect = Column(DECIMAL(precision=28, scale=2), comment='用户账号预期到账金额')
+#
+#
+# class CashNotes(Base):
+#     """用户提现记录"""
+#     __tablename__ = 'CashNotes'
+#     CNid = Column(String(64), primary_key=True)
+#     USid = Column(String(64), comment='用户id')
+#     CommisionFor = Column(Integer, default=20, comment='0 平台, 10 供应商, 20 普通用户')
+#     CNbankName = Column(Text, comment='开户行')
+#     CNbankDetail = Column(Text, comment='开户网点详情')
+#     CNcardNo = Column(String(32), comment='卡号')
+#     CNcashNum = Column(DECIMAL(precision=28, scale=2), comment='提现金额')
+#     CNcardName = Column(String(32), comment='开户人')
+#     CNstatus = Column(Integer, default=0, comment='提现状态 0: 审核中, 1: 审核通过, -1:拒绝')
+#     CNrejectReason = Column(Text, comment='拒绝理由')
 

@@ -5,13 +5,13 @@ from flask import request, current_app
 
 from PIL import Image
 
-from service.bechi.common.compress_picture import CompressPicture
-from service.bechi.common.error_response import NotFound, ParamsError, SystemError
-from service.bechi.common.params_validates import parameter_required
-from service.bechi.common.success_response import Success
-from service.bechi.common.token_handler import token_required
-from service.bechi.common.video_extraction_thumbnail import video2frames
-from service.bechi.config.http_config import API_HOST
+from bechi.common.compress_picture import CompressPicture
+from bechi.common.error_response import NotFound, ParamsError, SystemError
+from bechi.common.params_validates import parameter_required
+from bechi.common.success_response import Success
+from bechi.common.token_handler import token_required
+from bechi.common.video_extraction_thumbnail import video2frames
+from bechi.config.http_config import API_HOST
 
 
 class CFile(object):

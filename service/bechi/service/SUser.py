@@ -1,6 +1,6 @@
-from service.bechi.common.base_service import SBase
-from service.bechi.models import IdentifyingCode, User, UserCommission, UserLoginTime, UserAddress, AddressProvince, \
-    AddressCity, AddressArea, UserMedia, IDCheck, Admin, AdminNotes, UserIntegral, Supplizer
+from bechi.common.base_service import SBase
+from bechi.models import IdentifyingCode, User, UserLoginTime, UserAddress, AddressProvince, \
+    AddressCity, AddressArea, UserMedia, IDCheck, Admin, AdminNotes, UserIntegral
 from sqlalchemy import or_, and_, extract
 
 

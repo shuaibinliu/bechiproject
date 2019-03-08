@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy import Integer, String, Text, Float, DateTime, Boolean, orm, DECIMAL
 
-from service.bechi.common.base_model import Base, Column
+from bechi.common.base_model import Base, Column
 
 
 class Carts(Base):

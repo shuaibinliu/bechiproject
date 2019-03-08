@@ -2,7 +2,7 @@
 from sqlalchemy import create_engine, Integer, String, Text, Float, Boolean, orm, DateTime, DECIMAL, BIGINT
 from sqlalchemy.dialects.mysql import LONGTEXT
 
-from service.bechi.common.base_model import Base, Column
+from bechi.common.base_model import Base, Column
 
 
 class Products(Base):

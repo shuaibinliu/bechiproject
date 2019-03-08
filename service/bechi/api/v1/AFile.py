@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from service.bechi.common.base_resource import Resource
-from service.bechi.control.CFile import CFile
+from bechi.common.base_resource import Resource
+from bechi.control.CFile import CFile
 
 
 class AFile(Resource):

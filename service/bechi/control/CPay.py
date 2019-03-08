@@ -11,21 +11,21 @@ from operator import mul
 
 from flask import request, current_app
 
-from service.bechi.common.params_validates import parameter_required
-from service.bechi.common.error_response import ParamsError, SystemError, ApiError, StatusError
-from service.bechi.common.success_response import Success
-from service.bechi.common.token_handler import token_required
-from service.bechi.config.cfgsetting import ConfigSettings
-from service.bechi.config.enums import PayType, Client, OrderMainStatus, OrderFrom, UserCommissionType, OMlogisticTypeEnum, \
+from bechi.common.params_validates import parameter_required
+from bechi.common.error_response import ParamsError, SystemError, ApiError, StatusError
+from bechi.common.success_response import Success
+from bechi.common.token_handler import token_required
+from bechi.config.cfgsetting import ConfigSettings
+from bechi.config.enums import PayType, Client, OrderMainStatus, OrderFrom, UserCommissionType, OMlogisticTypeEnum, \
     LogisticsSignStatus, UserIdentityStatus, UserCommissionStatus, ApplyFrom
-from service.bechi.extensions.register_ext import alipay, wx_pay, db
-from service.bechi.extensions.weixin.pay import WeixinPayError
-from service.bechi.models import User, UserCommission, ProductBrand, ProductItems, Items, TrialCommodity, OrderLogistics, \
+from bechi.extensions.register_ext import alipay, wx_pay, db
+from bechi.extensions.weixin.pay import WeixinPayError
+from bechi.models import User, UserCommission, ProductBrand, ProductItems, Items, TrialCommodity, OrderLogistics, \
     Products, Supplizer
-from service.bechi.models import OrderMain, OrderPart, OrderPay, FreshManJoinFlow, ProductSku
-from service.bechi.models.commision import Commision
-from service.bechi.service.STrade import STrade
-from service.bechi.service.SUser import SUser
+from bechi.models import OrderMain, OrderPart, OrderPay, FreshManJoinFlow, ProductSku
+from bechi.models.commision import Commision
+from bechi.service.STrade import STrade
+from bechi.service.SUser import SUser
 
 
 class CPay():
@@ -50,7 +50,7 @@ class CPay():
             raise e
         except Exception as e:
             raise ParamsError('客户端或支付方式类型错误')
-        from service.bechi.control.CUser import CUser
+        from bechi.control.CUser import CUser
         cuser = CUser()
         with db.auto_commit():
             opayno = self.wx_pay.nonce_str

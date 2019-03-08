@@ -3,9 +3,9 @@ import json
 from decimal import Decimal
 
 from bechi import create_app
-from service.bechi.config.enums import ItemAuthrity, ItemPostion, ItemType, ActivityType
-from service.bechi.extensions.register_ext import db
-from service.bechi.models import Items, ProductBrand, Activity, PermissionType, Approval, ProductSku, Admin
+from bechi.config.enums import ItemAuthrity, ItemPostion, ItemType, ActivityType
+from bechi.extensions.register_ext import db
+from bechi.models import Items, ProductBrand, Activity, PermissionType, Approval, ProductSku, Admin
 
 
 # 添加一些默认的数据

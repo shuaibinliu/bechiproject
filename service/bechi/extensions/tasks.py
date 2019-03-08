@@ -6,13 +6,13 @@ from flask import current_app
 from flask_celery import Celery
 from sqlalchemy import cast, Date, extract, func
 
-from service.bechi.common.error_response import NotFound
-from service.bechi.common.share_stock import ShareStock
-from service.bechi.config.cfgsetting import ConfigSettings
-from service.bechi.config.enums import OrderMainStatus, OrderFrom, UserCommissionStatus, ProductStatus, ApplyStatus, ApplyFrom, \
+from bechi.common.error_response import NotFound
+from bechi.common.share_stock import ShareStock
+from bechi.config.cfgsetting import ConfigSettings
+from bechi.config.enums import OrderMainStatus, OrderFrom, UserCommissionStatus, ProductStatus, ApplyStatus, ApplyFrom, \
     SupplizerSettementStatus, LogisticsSignStatus
-from service.bechi.extensions.register_ext import db
-# from service.bechi.models import CorrectNum, GuessNum, GuessAwardFlow, ProductItems, OrderMain, OrderPart, OrderEvaluation, \
+from bechi.extensions.register_ext import db
+# from bechi.models import CorrectNum, GuessNum, GuessAwardFlow, ProductItems, OrderMain, OrderPart, OrderEvaluation, \
 #     Products, User, UserCommission, Approval, Supplizer, SupplizerSettlement
 
 celery = Celery()
@@ -60,7 +60,7 @@ def auto_evaluate():
     with db.auto_commit():
         s_list = list()
         current_app.logger.info(">>>>>>  开始检测超过{0}天未评价的商品订单  <<<<<<".format(limit_time))
-        from service.bechi.control.COrder import COrder
+        from bechi.control.COrder import COrder
         corder = COrder()
         count = 0
         order_mains = OrderMain.query.filter(OrderMain.OMstatus == OrderMainStatus.wait_comment.value,
@@ -201,8 +201,8 @@ def create_settlenment():
 @celery.task(name='get_logistics')
 def get_logistics():
     """获取快递信息, 每天一次"""
-    from service.bechi.models import OrderLogistics
-    from service.bechi.control.CLogistic import CLogistic
+    from bechi.models import OrderLogistics
+    from bechi.control.CLogistic import CLogistic
     clogistic = CLogistic()
     time_now = datetime.now()
     order_logisticss = OrderLogistics.query.filter(
@@ -222,8 +222,8 @@ def get_logistics():
 @celery.task(name='auto_confirm_order')
 def auto_confirm_order():
     """已签收7天自动确认收货, 在物流跟踪上已经签收, 但是用户没有手动签收的订单"""
-    from service.bechi.models import OrderLogistics
-    from service.bechi.control.COrder import COrder
+    from bechi.models import OrderLogistics
+    from bechi.control.COrder import COrder
     cfs = ConfigSettings()
     auto_confirm_day = int(cfs.get_item('order_auto', 'auto_confirm_day'))
     time_now = datetime.now()
@@ -244,7 +244,7 @@ def auto_confirm_order():
 @celery.task()
 def auto_agree_task(avid):
     current_app.logger.info('avid is {}'.format(avid))
-    from service.bechi.control.CApproval import CApproval
+    from bechi.control.CApproval import CApproval
     cp = CApproval()
     with db.auto_commit():
         approval = Approval.query.filter(
@@ -270,7 +270,7 @@ def auto_agree_task(avid):
 @celery.task()
 def auto_cancle_order(omids):
     for omid in omids:
-        from service.bechi.control.COrder import COrder
+        from bechi.control.COrder import COrder
         order_main = OrderMain.query.filter(OrderMain.isdelete == False,
                                             OrderMain.OMstatus == OrderMainStatus.wait_pay.value,
                                             OrderMain.OMid == omid).first()

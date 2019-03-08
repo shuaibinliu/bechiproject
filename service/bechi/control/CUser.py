@@ -14,39 +14,37 @@ from flask import current_app
 from sqlalchemy import extract, or_, func
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from service.bechi.config.cfgsetting import ConfigSettings
-from service.bechi.config.enums import UserIntegralType, AdminLevel, AdminStatus, UserIntegralAction, AdminAction, \
+from bechi.config.cfgsetting import ConfigSettings
+from bechi.config.enums import UserIntegralType, AdminLevel, AdminStatus, UserIntegralAction, AdminAction, \
     UserLoginTimetype, UserStatus, WXLoginFrom, OrderMainStatus, BankName, ApprovalType, UserCommissionStatus, \
     ApplyStatus, ApplyFrom, ApprovalAction, SupplizerSettementStatus, UserAddressFrom
 
 
-from service.bechi.config.secret import SERVICE_APPID, SERVICE_APPSECRET, \
+from bechi.config.secret import SERVICE_APPID, SERVICE_APPSECRET, \
     SUBSCRIBE_APPID, SUBSCRIBE_APPSECRET, appid, appsecret
-from service.bechi.config.http_config import bechi_SERVICE, bechi_SUBSCRIBE, bechi
-from service.bechi.common.params_validates import parameter_required
-from service.bechi.common.error_response import ParamsError, SystemError, TokenError, TimeError, NotFound, AuthorityError, \
+from bechi.config.http_config import bechi_SERVICE, bechi_SUBSCRIBE, bechi
+from bechi.common.params_validates import parameter_required
+from bechi.common.error_response import ParamsError, SystemError, TokenError, TimeError, NotFound, AuthorityError, \
     WXLoginError, StatusError, InsufficientConditionsError
-from service.bechi.common.success_response import Success
-from service.bechi.common.base_service import get_session
-from service.bechi.common.token_handler import token_required, usid_to_token, is_shop_keeper, is_hign_level_admin, is_admin, \
+from bechi.common.success_response import Success
+from bechi.common.base_service import get_session
+from bechi.common.token_handler import token_required, usid_to_token, is_shop_keeper, is_hign_level_admin, is_admin, \
     admin_required, is_supplizer, common_user
-from service.bechi.common.default_head import GithubAvatarGenerator
-from service.bechi.common.Inforsend import SendSMS
-from service.bechi.common.request_handler import gennerc_log
-from service.bechi.common.id_check import DOIDCheck
-from service.bechi.common.make_qrcode import qrcodeWithlogo
-from service.bechi.extensions.tasks import auto_agree_task
-from service.bechi.extensions.weixin.login import WeixinLogin, WeixinLoginError
-from service.bechi.extensions.register_ext import mp_server, mp_subscribe, db
-# from service.bechi.extensions.validates.user import SupplizerLoginForm, UpdateUserCommisionForm
+from bechi.common.default_head import GithubAvatarGenerator
+from bechi.common.Inforsend import SendSMS
+from bechi.common.request_handler import gennerc_log
+from bechi.common.id_check import DOIDCheck
+from bechi.common.make_qrcode import qrcodeWithlogo
+from bechi.extensions.tasks import auto_agree_task
+from bechi.extensions.weixin.login import WeixinLogin, WeixinLoginError
+from bechi.extensions.register_ext import mp_server, mp_subscribe, db
+# from bechi.extensions.validates.user import SupplizerLoginForm, UpdateUserCommisionForm
 
-from service.bechi.models import User, UserLoginTime, UserCommission, UserInvitation, \
-    UserAddress, IDCheck, IdentifyingCode, UserMedia, UserIntegral, Admin, AdminNotes, CouponUser, UserWallet, \
-    CashNotes, UserSalesVolume, Coupon, SupplizerAccount, SupplizerSettlement, SettlenmentApply
+from bechi.models import User, UserLoginTime, UserAddress, IDCheck, IdentifyingCode, UserMedia, UserIntegral, Admin, AdminNotes
 # from .BaseControl import BASEAPPROVAL
-from service.bechi.service.SUser import SUser
-from service.bechi.models.product import Products, Items, ProductItems, Supplizer
-from service.bechi.models.trade import OrderPart, OrderMain
+from bechi.service.SUser import SUser
+from bechi.models.product import Products, Items, ProductItems, Supplizer
+from bechi.models.trade import OrderPart, OrderMain
 
 
 class CUser(SUser):

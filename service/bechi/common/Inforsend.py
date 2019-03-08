@@ -10,8 +10,8 @@ import urllib
 import requests
 from hashlib import sha1
 
-from service.bechi.common.error_response import ParamsError
-from service.bechi.common.request_handler import gennerc_log
+from bechi.common.error_response import ParamsError
+from bechi.common.request_handler import gennerc_log
 from ..config.secret import ACCESS_KEY_ID, ACCESS_KEY_SECRET, SignName, TemplateCode
 # from ..config.cfgsetting import singleton
 

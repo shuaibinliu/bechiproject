@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy import String, Text, Integer, Boolean
-from service.bechi.common.base_model import Base, Column
+from bechi.common.base_model import Base, Column
 
 
 class News(Base):
