@@ -25,7 +25,7 @@ class SUser(SBase):
             IdentifyingCode.createtime.desc()).first_()
 
     def get_user_by_ustelphone(self, utel):
-        return User.query.filter(User.UStelphone == utel, User.isdelete == False).first_()
+        return User.query.filter(User.UStelphone == utel, User.isdelete == False).first()
 
     def get_user_by_id(self, usid):
         return User.query.filter(User.USid == usid, User.isdelete == False).first_('用户不存在')

@@ -43,8 +43,8 @@ from bechi.extensions.register_ext import mp_server, mp_subscribe, db
 from bechi.models import User, UserLoginTime, UserAddress, IDCheck, IdentifyingCode, UserMedia, UserIntegral, Admin, AdminNotes
 # from .BaseControl import BASEAPPROVAL
 from bechi.service.SUser import SUser
-from bechi.models.product import Products, Items, ProductItems, Supplizer
-from bechi.models.trade import OrderPart, OrderMain
+# from bechi.models.product import Products, Items, ProductItems, Supplizer
+# from bechi.models.trade import OrderPart, OrderMain
 
 
 class CUser(SUser):
@@ -138,45 +138,6 @@ class CUser(SUser):
         except:
             raise ParamsError('邀请人参数异常')
         return json.loads(model_byte.decode('utf-8'))
-
-    def _check_gift_order(self, e=None):
-        """检查是否购买大礼包"""
-        start = datetime.datetime.now().timestamp()
-        op_list = OrderPart.query.filter(
-            OrderMain.isdelete == False, OrderPart.isdelete == False,
-            ProductItems.isdelete == False, Items.isdelete == False,
-            OrderMain.USid == request.user.id,
-            OrderMain.OMstatus == OrderMainStatus.ready.value,
-            OrderPart.PRid == ProductItems.PRid,
-            ProductItems.ITid == Items.ITid,
-            Items.ITname == '开店大礼包',
-            OrderPart.OMid == OrderMain.OMid).all()
-
-        end = datetime.datetime.now().timestamp()
-        gennerc_log('连表查询开店大礼包的查询时间为 {0}'.format(float('%.2f' %(end - start))))
-        if op_list and e:
-            raise StatusError(e)
-        return bool(op_list)
-
-    def __user_fill_uw_total(self, user):
-        """用户增加用户余额和用户总收益"""
-        # 增加待结算佣金
-        uw = UserWallet.query.filter_by_(USid=user.USid).first()
-        if not uw:
-            user.fill('usbalance', 0)
-            user.fill('ustotal', 0)
-            user.fill('uscash', 0)
-        else:
-            user.fill('usbalance', uw.UWbalance or 0)
-            user.fill('ustotal', uw.UWtotal or 0)
-            user.fill('uscash', uw.UWcash or 0)
-        ucs = UserCommission.query.filter(
-            UserCommission.USid == user.USid,
-            UserCommission.UCstatus == UserCommissionStatus.preview.value,
-            UserCommission.isdelete == False).all()
-        uc_total = sum([Decimal(str(uc.UCcommission)) for uc in ucs])
-
-        user.fill('usexpect', '%.2f' %float(uc_total))
 
 
     def _base_decode(self, raw):
@@ -311,19 +272,6 @@ class CUser(SUser):
                 'apptype': WXLoginFrom.app.value
             }
 
-    def __check_apply_cash(self, commision_for):
-        """校验提现资质"""
-        if commision_for == ApplyFrom.user.value:
-            user = User.query.filter(User.USid == request.user.id, User.isdelete == False).first()
-            if not user or not (user.USrealname and user.USidentification):
-                raise InsufficientConditionsError('没有实名认证')
-
-        elif commision_for == ApplyFrom.supplizer.value:
-            sa = SupplizerAccount.query.filter(
-                SupplizerAccount.SUid == request.user.id, SupplizerAccount.isdelete == False).first()
-            if not sa or not (sa.SAbankName and sa.SAbankDetail and sa.SAcardNo and sa.SAcardName and sa.SAcardName
-                              and sa.SACompanyName and sa.SAICIDcode and sa.SAaddress and sa.SAbankAccount):
-                raise InsufficientConditionsError('账户信息和开票不完整，请补全账户信息和开票信息')
 
     @get_session
     def login(self):
@@ -361,7 +309,7 @@ class CUser(SUser):
         user.fill('usidentification', self.__conver_idcode(user.USidentification))
         user.fill('usbirthday', self.__update_birthday_str(user.USbirthday))
         user.fill('usidname', '大行星会员' if uslevel != self.AGENT_TYPE else "合作伙伴")
-        self.__user_fill_uw_total(user)
+        # self.__user_fill_uw_total(user)
 
         token = usid_to_token(usid, model='User', level=uslevel, username=user.USname)
         return Success('登录成功', data={'token': token, 'user': user})
@@ -403,8 +351,6 @@ class CUser(SUser):
         user.fields = self.USER_FIELDS[:]
         user.fill('usidentification', self.__conver_idcode(user.USidentification))
         user.fill('usbirthday', self.__update_birthday_str(user.USbirthday))
-        user.fill('usidname', '大行星会员' if uslevel != self.AGENT_TYPE else "合作伙伴")
-        self.__user_fill_uw_total(user)
         token = usid_to_token(usid, model='User', level=uslevel, username=user.USname)
         return Success('登录成功', data={'token': token, 'user': user})
 
