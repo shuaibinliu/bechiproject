@@ -529,7 +529,22 @@ class NotesStatus(Enum):
     publish = 1, '发布'
 
 
+class GroupBuyingStatus(Enum):
+    cancle = -10, '已撤销'
+    reject = -20, '已拒绝'
+    stop = -30, '下架'
+    wait_check = 1, '审核中'
+    agree = 10, '已同意'
+
+
+class ProductAreaStatus(Enum):
+    normal = 10, '正常'
+    hide = 1, '隐藏'
+    wait = -1, '未上架'
+
+
 # class MagicBoxStatus()
 if __name__ == '__main__':
     print(UserSearchHistoryType.news.value)
     # import
+
