@@ -14,12 +14,15 @@ from flask_cors import CORS
 # from bechi.api.v1.ACoupon import ACoupon
 # from bechi.api.v1.AIndex import AIndex
 # from bechi.api.v1.AItems import AItems
+from bechi.api.v1.ACategory import ACategory
 from bechi.api.v1.AFile import AFile
 # from bechi.api.v1.ALogistic import ALogistic
 # from bechi.api.v1.AOrder import AOrder
 # from bechi.api.v1.AProduct import AProduct
 # from bechi.api.v1.ARefund import ARefund
 # from bechi.api.v1.ASku import ASku
+from bechi.api.v1.AProduct import AProduct
+from bechi.api.v1.AProductarea import AProductarea
 from bechi.api.v1.AUser import AUser
 # from bechi.api.v1.ANews import ANews
 # from bechi.api.v1.AAddress import AAddress
@@ -109,9 +112,10 @@ class Flask(_Flask):
 
 def register_v1(app):
     v1 = Blueprint(__name__, 'v1', url_prefix='/api/v1')
-    # v1.add_url_rule('/product/<string:product>', view_func=AProduct.as_view('product'))
+    v1.add_url_rule('/product/<string:product>', view_func=AProduct.as_view('product'))
     v1.add_url_rule('/file/<string:file>', view_func=AFile.as_view('file'))
-    # v1.add_url_rule('/category/<string:category>', view_func=ACategory.as_view('category'))
+    v1.add_url_rule('/category/<string:category>', view_func=ACategory.as_view('category'))
+    v1.add_url_rule('/area/<string:area>', view_func=AProductarea.as_view('area'))
     # v1.add_url_rule('/cart/<string:cart>', view_func=ACart.as_view('cart'))
     # v1.add_url_rule('/order/<string:order>', view_func=AOrder.as_view('order'))
     # v1.add_url_rule('/sku/<string:sku>', view_func=ASku.as_view('sku'))

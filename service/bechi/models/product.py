@@ -17,17 +17,19 @@ class Products(Base):
     PRfreight = Column(Float(precision=10, scale=2), default=0, comment='运费')
     PRstocks = Column(BIGINT, comment='库存')
     PRsalesValue = Column(Integer, default=0, comment='销量')
+    PRsalesValueFake = Column(Integer, default=0, comment='销量')
     PRstatus = Column(Integer, default=10, comment='状态  0 正常, 10 审核中 60下架')
     PRmainpic = Column(String(255), comment='主图', url=True)
     PRattribute = Column(Text, comment='商品属性 ["网络","颜色","存储"]')
     PCid = Column(String(64), comment='分类id')
-    PBid = Column(String(64), comment='品牌id')
+    # PBid = Column(String(64), comment='品牌id')
     PRdesc = Column(LONGTEXT, comment='商品详细介绍', url_list=True)
     PRremarks = Column(String(255), comment='备注')
     PRfrom = Column(Integer, default=0, comment='商品来源 0 平台发布 10 供应商发布')
     PRdescription = Column(Text, comment='商品描述')
     CreaterId = Column(String(64), nullable=False, comment='创建者')
     PRaverageScore = Column(Float(precision=10, scale=2), default=10.00, comment='商品评价平均分')
+    PRpurchaseNum = Column(Integer, default=0, comment='X人购买')
     # PRcode = Column(String(64), comment='商品的外部编号')
 
     @orm.reconstructor
@@ -55,8 +57,8 @@ class ProductSku(Base):
     SKUattriteDetail = Column(Text, comment='sku属性信息 ["电信","白","16G"]')
     SKUprice = Column(DECIMAL(precision=28, scale=2), nullable=False, comment='价格')
     SKUstock = Column(BIGINT, comment='库存')
-    SKUsn = Column(String(64), default=SKUid, nullable=False, unique=True, comment='sku编码')
-    SkudevideRate = Column(DECIMAL(scale=2), comment='商品让利比例')
+    SKUsn = Column(String(64), default=SKUid, nullable=False, comment='sku编码')
+    # SkudevideRate = Column(DECIMAL(scale=2), comment='商品让利比例')
 
 
 class ProductSkuValue(Base):
@@ -235,6 +237,16 @@ class SettlenmentApply(Base):
     SSArejectReason = Column(Text, comment='拒绝理由')
     SSAstatus = Column(Integer, default=0, comment='申请状态')
 
+
+class ProductArea(Base):
+    # 专区
+    __tablename__ = 'ProductArea'
+    PAid = Column(String(64), primary_key=True)
+    PCid = Column(String(64), comment='关联的分类')
+    PAstatus = Column(Integer, default=0, comment='专区状态， 0 正常展示 1 隐藏')
+    PAsort = Column(Integer, comment='专区排序')
+    PAimg = Column(Text, comment='专区图片')
+    PAdesc = Column(Text, comment='专区描述')
 
 # class SupplizerBrand(Base):
 #     """供应商品牌表"""
