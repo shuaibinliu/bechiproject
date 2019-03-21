@@ -38,6 +38,7 @@ class CProduct():
         product.PRaverageScore = praveragescore
         product.fill('fiveaveragescore', praveragescore / 2)
         product.fill('prstatus_en', ProductStatus(product.PRstatus).name)
+        product.fill('prstatus_zh', ProductStatus(product.PRstatus).zh_value)
         # product.PRdesc = json.loads(getattr(product, 'PRdesc') or '[]')
         product.PRattribute = json.loads(product.PRattribute)
         product.PRremarks = json.loads(getattr(product, 'PRremarks') or '{}')
@@ -195,8 +196,12 @@ class CProduct():
         product_category = ProductCategory.query.filter(
             ProductCategory.PCid == pcid, ProductCategory.isdelete == False
         ).first_('指定目录不存在')
-        if not re.match(r'^\d+$', str(data.get('prsalesvaluefake'))):
-            raise ParamsError('虚拟销量数据异常')
+        if data.get('prsalesvaluefake'):
+            if not re.match(r'^\d+$', str(data.get('prsalesvaluefake'))):
+                raise ParamsError('虚拟销量数据异常')
+        else:
+            data['prsalesvaluefake'] = 0
+
 
         prstocks = 0
         with db.auto_commit() as s:
@@ -227,7 +232,6 @@ class CProduct():
                 sku_detail_list.append(skuattritedetail)
                 skuprice = float(sku.get('skuprice'))
                 skustock = int(sku.get('skustock'))
-                skudeviderate = sku.get('skudeviderate')
 
                 assert skuprice > 0 and skustock >= 0, 'sku价格或库存错误'
                 prstocks += int(skustock)
@@ -238,8 +242,7 @@ class CProduct():
                     'SKUprice': round(skuprice, 2),
                     'SKUstock': int(skustock),
                     'SKUattriteDetail': json.dumps(skuattritedetail),
-                    'SKUsn': sn,
-                    'SkudevideRate': skudeviderate
+                    'SKUsn': sn
                 }
                 sku_instance = ProductSku.create(sku_dict)
                 session_list.append(sku_instance)
@@ -501,7 +504,7 @@ class CProduct():
             ).delete_(synchronize_session=False)
         return Success('删除成功')
 
-    @token_required
+    # @token_required
     def off_shelves(self):
         """下架"""
         data = parameter_required(('prids',))
@@ -510,7 +513,7 @@ class CProduct():
 
         with db.auto_commit():
             product = Products.query.filter(
-                Products.PRid.in_(data.get('prid')),
+                Products.PRid.in_(data.get('prids')),
                 Products.isdelete == False
             ).first_('商品不存在')
             product.PRstatus = ProductStatus.off_shelves.value

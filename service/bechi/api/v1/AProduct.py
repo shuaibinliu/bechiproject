@@ -11,6 +11,7 @@ class AProduct(Resource):
             'create': self.cproduct.add_product,
             'update': self.cproduct.update_product,
             'confirm': self.cproduct.resubmit_product,
+            'offshelves': self.cproduct.off_shelves,
             'delete': self.cproduct.delete
         }
         return apis
