@@ -18,7 +18,7 @@ from bechi.models.activity import GroupBuying, GroupbuyingProduct, GroupbuyingSk
 from bechi.models.product import Products, ProductBrand, ProductSkuValue, ProductItems, ProductCategory, ProductImage, \
     ProductSku
 
-
+# todo 获取接口增加权限筛选 创建更新删除接口增加管理员权限把控
 class CProduct():
 
     def get_product(self):
@@ -177,7 +177,6 @@ class CProduct():
 
     # @token_required
     def add_product(self):
-        # TOdo  增加虚拟销量
         # if is_admin():
         product_from = ProductFrom.platform.value
         # else:
