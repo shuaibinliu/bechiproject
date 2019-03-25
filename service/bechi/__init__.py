@@ -7,6 +7,7 @@ from flask import current_app, Blueprint, Flask as _Flask, Request as _Request
 from werkzeug.exceptions import HTTPException
 from flask.json import JSONEncoder as _JSONEncoder
 from flask_cors import CORS
+from bechi.api.v1.AMaterial import AMaterial
 # from bechi.api.v1.AAuth import AAuth
 # from bechi.api.v1.ABrands import ABrands
 # from bechi.api.v1.ACart import ACart
@@ -142,6 +143,7 @@ def register_v1(app):
     # v1.add_url_rule('/act_code/<string:act_code>', view_func=AActivationCode.as_view('act_code'))  # 激活码
     # v1.add_url_rule('/commision/<string:comm>', view_func=ACommission.as_view('comm'))  # 佣金设置
     # v1.add_url_rule('/siginsetting/<string:siginsetting>', view_func=ASigninSetting.as_view('siginsetting'))  # 签到设置
+    v1.add_url_rule('/material/<string:material>', view_func=AMaterial.as_view('material'))  # 素材库
 
 
     # v1.add_url_rule('/paytest', view_func=APayTest.as_view('pay'))
