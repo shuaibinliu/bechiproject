@@ -24,7 +24,7 @@ DB_PARAMS = "{0}://{1}:{2}@{3}/{4}?charset={5}".format(
     database,
     charset)
 # 微信
-appid = env.get('BECHIAPPID', 'wxe8e8f6b9351d3587')
+appid = env.get('BECHIAPPID', 'wx430108f6ea426eb2')
 appsecret = env.get('BECHIAPPSECRET', 'b89e22f046d33b39c7a4afa485e661dc')
 wxtoken = env.get('BECHIWXTOKEN', '')
 wxscope = 'snsapi_userinfo'

@@ -51,6 +51,18 @@ class UserSearchHistory(Base):
     USHtype = Column(Integer, default=0, comment='搜索类型0 商品, 10 圈子')
 
 
+class UserCollections(Base):
+    """用户收藏表"""
+    __tablename__ = 'UserCollection'
+    UCSid = Column(String(64), primary_key=True)
+    USid = Column(String(64), nullable=False)
+    UCScollectionid = Column(String(64), nullable=False, comment='收藏的id')
+    UCStype = Column(Integer, default=0, comment='收藏类别{ 0: 商品 1: 素材}')
+    USCtitle = Column(String(125), comment='收藏内容的标题')
+    USCpicture = Column(String(255), url=True, comment='收藏内容图片')
+    USCsummary = Column(String(255), comment='收藏的概要{文章存概要，商品可选存价格}')
+
+
 class Admin(Base):
     """
     管理员

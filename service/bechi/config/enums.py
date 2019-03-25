@@ -543,6 +543,23 @@ class ProductAreaStatus(Enum):
     wait = -1, '未上架'
 
 
+class CategoryType(Enum):
+    material = 0, '素材'
+    dietitian = 1, '营养师'
+
+
+class CollectionType(Enum):
+    product = 0, '商品'
+    material = 1, '素材'
+
+
+class MaterialCommentStatus(Enum):
+    usual = (0, '已通过')
+    auditing = (10, '待审核')
+    reject = 30, '已驳回',
+    all = None, '全部'
+
+
 # class MagicBoxStatus()
 if __name__ == '__main__':
     print(UserSearchHistoryType.news.value)
