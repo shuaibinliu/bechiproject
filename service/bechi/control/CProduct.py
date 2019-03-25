@@ -119,7 +119,7 @@ class CProduct():
         pcid = pcid.split('|') if pcid else []
         pcids = self._sub_category_id(pcid)
         pcids = list(set(pcids))
-
+        skusn = data.get('skusn')
         prstatus = data.get('prstatus')
         if not is_admin():
             prstatus = prstatus or 'usual'  # 商品状态
@@ -138,6 +138,9 @@ class CProduct():
         ]
 
         query = Products.query.filter(Products.isdelete == False)
+        if skusn:
+            query = query.outerjoin(ProductSku, ProductSku.PRid == Products.PRid
+                                    ).filter(ProductSku.isdelete == False, ProductSku.SKUsn.ilike("%{}%".format(skusn)))
         products = query.filter_(*filter_args).order_by(by_order).all_with_page()
         # 填充
         for product in products:
@@ -196,7 +199,8 @@ class CProduct():
             ProductCategory.PCid == pcid, ProductCategory.isdelete == False
         ).first_('指定目录不存在')
         if data.get('prsalesvaluefake'):
-            if not re.match(r'^\d+$', str(data.get('prsalesvaluefake'))):
+            # if not re.match(r'^\d+$', str(data.get('prsalesvaluefake'))):
+            if not self._check_pint(data.get('prsalesvaluefake')):
                 raise ParamsError('虚拟销量数据异常')
         else:
             data['prsalesvaluefake'] = 0
@@ -317,7 +321,8 @@ class CProduct():
         skus = data.get('skus')
         prdescription = data.get('prdescription')
         if data.get('prsalesvaluefake'):
-            if not re.match(r'^\d+$', str(data.get('prsalesvaluefake'))):
+            # if not re.match(r'^\d+$', str(data.get('prsalesvaluefake'))):
+            if not self._check_pint(data.get('prsalesvaluefake')):
                 raise ParamsError('虚拟销量数据异常')
         else:
             data['prsalesvaluefake'] = 0
@@ -661,10 +666,12 @@ class CProduct():
         ).first()
 
         if gp:
+            gb = GroupBuying.query.filter(GroupBuying.GBid == gp.GBid, GroupBuying.isdelete == False).first_('数据异常')
             product.fill('isgroupbuying', True)
             product.fill('GPprice', gp.GPprice)
             product.fill('GPstocks', gp.GPstpcks)
             product.fill('GPfreight', gp.GPfreight)
+            product.fill('countdown', self._get_timedelta(gb.GBendtime))
             for sku in product.skus:
                 gs = GroupbuyingSku.query.filter(
                     GroupbuyingSku.GPid == gp.GPid,
@@ -677,3 +684,22 @@ class CProduct():
                 sku.fill('SKUgpStock', gs.SKUgpStock)
         else:
             product.fill('isgroupbuying', False)
+
+    def _get_timedelta(self, endtime):
+        now = datetime.datetime.now()
+        countdown = endtime - now
+        hours = str(countdown.days * 24 + (countdown.seconds // 3600))
+        minutes = str((countdown.seconds % 3600) // 60)
+        seconds = str((countdown.seconds % 3600) % 60)
+
+        return "{}:{}:{}".format('0' + hours if len(hours) == 1 else hours,
+                                 '0' + minutes if len(minutes) == 1 else minutes,
+                                 '0' + seconds if len(seconds) == 1 else seconds)
+
+    def _check_int(self, num):
+        # 校验整数
+        return re.match(r'^-?\d+$', str(num))
+
+    def _check_pint(self, num):
+        # 校验正整数
+        return re.match(r'^\d+$', str(num))

@@ -4,6 +4,20 @@ from sqlalchemy import String, Text, Integer, Boolean, Date, DateTime, DECIMAL, 
 from bechi.common.base_model import Base, Column
 
 
+class Activity(Base):
+    """活动列表控制"""
+    __tablename__ = 'Activity'
+    ACid = Column(Integer, primary_key=True)
+    ACbackGround = Column(String(255), nullable=False, url=True, comment='列表页背景图')
+    ACtopPic = Column(String(255), nullable=False, url=True, comment='顶部图 ')
+    ACbutton = Column(String(16), default='立即参与', comment='按钮文字')
+    ACtype = Column(Integer, default=0, unique=True, index=True, comment='类型 0: 新人 1 猜数字 2 魔术礼盒 3 免费试用')
+    ACshow = Column(Boolean, default=True, comment='是否开放')
+    ACdesc = Column(Text, comment='活动描述')
+    ACname = Column(String(16), nullable=False, comment='名字')
+    ACsort = Column(Integer, comment='顺序标志')
+
+
 class GroupBuying(Base):
     """
     拼团配置
@@ -76,3 +90,4 @@ class GroupbuyingSku(Base):
     PRid = Column(String(64), nullable=False, comment='产品id')
     SKUgpPrice = Column(DECIMAL(precision=28, scale=2), nullable=False, comment='拼团价格')
     SKUgpStock = Column(BIGINT, comment='拼团库存')
+
