@@ -235,6 +235,6 @@ if __name__ == '__main__':
         # print(admin.__dict__)
         # print(admin_str)
         # make_acvitity()
-        # make_items()
-        make_permissiontype()
+        make_items()
+        # make_permissiontype()
         # make_admin()

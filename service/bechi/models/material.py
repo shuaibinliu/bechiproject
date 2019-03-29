@@ -42,7 +42,7 @@ class MaterialCategory(Base):
     MClevel = Column(Integer, default=1, comment='最高三级分类{1: 一级分类; 2: 二级分类; 3: 三级分类}')
     MCsort = Column(Integer, comment='顺序')
     MCtype = Column(Integer, default=0, comment='分类类别{0: 素材分类; 1: 营养师分类}')
-    MCpicture = Column(Text, comment='图片，仅话题分类有')
+    MCpicture = Column(Text, url=True, comment='图片，仅话题分类有')
     MCdesc = Column(String(255), comment='分类描述， 仅话题展示')
 
 

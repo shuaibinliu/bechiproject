@@ -55,7 +55,7 @@ class CMaterial(object):
                 participation = MaterialComment.query.outerjoin(MaterialCategoryRelated,
                                                                 MaterialCategoryRelated.MTid == MaterialComment.MTid
                                                                 ).filter(MaterialCategoryRelated.isdelete == False,
-                                                                         MaterialCategoryRelated.MCid == sb.mcid,
+                                                                         MaterialCategoryRelated.MCid == sb.MCid,
                                                                          MaterialComment.isdelete == False).count()
                 sb.fill('total_posts', posts)
                 sb.fill('total_participation', participation)
@@ -72,7 +72,7 @@ class CMaterial(object):
         with db.auto_commit():
             if mctype == CategoryType.material.value:
                 if not mcparentid:
-                    raise ParamsError('mcparentid 不能为空')
+                    raise ParamsError('创建素材分类时 mcparentid 不能为空')
                 parent_category = MaterialCategory.query.filter_by_(MCid=mcparentid).first_('上级分类不存在')
                 if parent_category.MCid == 'knowledge_classroom':
                     raise ParamsError('不允许在该层下创建分类')  # 知识课堂下不允许创建二级分类
@@ -90,6 +90,8 @@ class CMaterial(object):
                     category_dict['MCpicture'] = data.get('mcpicture')
                     category_dict['MCdesc'] = data.get('mcdesc')
             else:
+                if mcparentid:
+                    raise ParamsError('创建营养师分类时 不允许有 mcparentid')
                 category_dict = {'MCid': str(uuid.uuid1()),
                                  'MCname': data.get('mcname'),
                                  'MClevel': 1,
@@ -131,6 +133,8 @@ class CMaterial(object):
     @staticmethod
     def _check_sort(mctype, mcsort, mcparentid=None):
         count_pc = MaterialCategory.query.filter_by_(MCtype=mctype, MCparentid=mcparentid).count()
+        if not count_pc:
+            count_pc = 1
         if mcsort < 1:
             return 1
         if mcsort > count_pc:
