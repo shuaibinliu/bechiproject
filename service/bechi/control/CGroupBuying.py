@@ -10,11 +10,12 @@ from sqlalchemy import or_
 from bechi.common.error_response import ParamsError, SystemError
 from bechi.common.params_validates import parameter_required
 from bechi.common.success_response import Success
-from bechi.common.token_handler import get_current_user, is_admin, common_user, is_supplizer
-from bechi.config.enums import GroupBuyingStatus, ProductStatus
+from bechi.common.token_handler import get_current_user, is_admin, common_user, is_supplizer, admin_required, \
+    token_required
+from bechi.config.enums import GroupBuyingStatus, ProductStatus, GroupbuyingItemStatus, GroupbuyingUserStatus
 from bechi.control.CProduct import CProduct
 from bechi.extensions.register_ext import db
-from bechi.models.activity import GroupBuying, GroupbuyingProduct, GroupbuyingSku
+from bechi.models.activity import GroupBuying, GroupbuyingProduct, GroupbuyingSku, GroupbuyingItem, GroupbuyingUser
 from bechi.models.product import ProductSku, Products, ProductSkuValue
 
 
@@ -67,6 +68,7 @@ class CGroupBuying(CProduct):
 
         return Success(data=product_list)
 
+    @admin_required
     def list_groupbuying(self):
         # 后台获取拼团商品
         data = parameter_required()
@@ -93,16 +95,19 @@ class CGroupBuying(CProduct):
             self._fill_product(product, gp, gb)
             gb.fill('product', product)
             gb.fill('gbstatus_zh', GroupBuyingStatus(gb.GBstatus).zh_value)
-            gb.fill('gbstatus_en', GroupBuyingStatus(gb.GBstatus).value)
+            gb.fill('gbstatus_en', GroupBuyingStatus(gb.GBstatus).name)
 
         return Success(data=gb_list)
 
+    @admin_required
     def create(self):
         data = parameter_required((
-            'starttime', 'endtime', 'gbnum', 'prid', 'gpprice', 'skus'))
+            'starttime', 'endtime', 'gbnum', 'prid', 'gpprice', 'skus', 'gbtimes'))
         starttime, endtime = self._check_time(data.get('starttime'), data.get('endtime'))
         if not self._check_pint(data.get('gbnum')):
             raise ParamsError('gbnum 格式错误')
+        if not self._check_pint(data.get('gbtimes')):
+            raise ParamsError('gbtimes 格式错误')
         product = Products.query.filter(
             Products.isdelete == False,
             Products.PRid == data.get('prid'),
@@ -117,6 +122,7 @@ class CGroupBuying(CProduct):
                 'GBstarttime': starttime,
                 'GBendtime': endtime,
                 'GBnum': data.get('gbnum'),
+                'GBtimes': data.get('gbtimes'),
                 'GBstatus': GroupBuyingStatus.wait_check.value
             })
             instance_list.append(gb_instance)
@@ -125,6 +131,7 @@ class CGroupBuying(CProduct):
             db.session.add_all(instance_list)
         return Success('申请成功')
 
+    @admin_required
     def update(self):
         data = parameter_required(('gbid',))
         gb = GroupBuying.query.filter(
@@ -136,15 +143,21 @@ class CGroupBuying(CProduct):
             gb.GBstarttime = starttime
             gb.GBstatus = GroupBuyingStatus.wait_check.value
             if data.get('delete'):
-                gb.isdelete = True
+                self._delete_gb(gb)
+
             if data.get('gbnum'):
                 if not self._check_pint(data.get('gbnum')):
                     raise ParamsError('gbnum 格式错误')
                 gb.GBnum = data.get('gbnum')
+            if data.get('gbtimes'):
+                if not self._check_pint(data.get('gbtimes')):
+                    raise ParamsError('gbtimes 格式错误')
+                gb.GBtimes = data.get('gbtimes')
             if data.get('prid') or data.get('gpfreight') or data.get('gpstocks') or data.get('skus'):
                 self._update_groupbuying_product(data, gb)
         return Success('更新成功')
 
+    @admin_required
     def confirm(self):
         """活动确认"""
         data = parameter_required(('gbid',))
@@ -156,19 +169,119 @@ class CGroupBuying(CProduct):
             gb.GBstatus = GroupBuyingStatus.agree.value
         return Success('确认活动成功')
 
+    @token_required
     def join(self):
         """用户加入拼团"""
         user = get_current_user()
-        # todo 加入用户信息
-        return
+        data = parameter_required(('giid',))
+        gu = GroupbuyingUser.query.join(GroupbuyingItem, GroupbuyingItem.GIid == GroupbuyingUser.GIid).filter(
+            GroupbuyingItem.isdelete == False,
+            GroupbuyingUser.isdelete == False,
+            GroupbuyingItem.GIstatus == GroupbuyingItemStatus.underway.value,
+            GroupbuyingUser.USid == user.USid,
+            GroupbuyingUser.GIid == data.get('giid')
+        ).first()
+        if gu:
+            raise ParamsError('账号已经在队伍里了')
+        gi = GroupbuyingItem.query.filter(
+            GroupbuyingItem.isdelete == False, GroupbuyingItem.GIid == data.get('giid')).first_('该拼团已结束')
+        now = datetime.datetime.now()
+        gb = GroupBuying.query.filter(
+            GroupBuying.GBstarttime <= now,
+            GroupBuying.GBendtime >= now,
+            GroupBuying.GBid == gi.GBid,
+            GroupBuying.isdelete == False).first_('活动已结束')
+        gus = GroupbuyingUser.query.filter(
+            GroupbuyingUser.GIid == gi.GIid, GroupbuyingUser.isdelete == False).all()
 
+        if len(gus) >= int(gb.GBnum):
+            raise ParamsError('队伍已经满了，选择另外一个队伍吧')
+        # gu_times = GroupbuyingUser.query.join(GroupbuyingItem, GroupbuyingItem.GIid == GroupbuyingUser.GIid).join(
+        #     GroupBuying, GroupBuying.GBid == GroupbuyingItem.GBid).filter(
+        #     GroupbuyingUser.USid == user.USid, GroupBuying.GBid == data.get('gbid')).count()
+        # if gu_times >= gb.GBtimes:
+        #     raise ParamsError('超过限购次数')
+        self._check_bgtimes(gb.GBid, user.USid, gb.GBtimes)
+        with db.auto_commit():
+            gu = GroupbuyingUser.create({
+                'GUid': str(uuid.uuid1()),
+                'GIid': data.get('giid'),
+                'USid': user.USid,
+                'UShead': user.USheader,
+                'USname': user.USname
+            })
+            db.session.add(gu)
+            if int(gb.GBnum) - len(gus) == 1:
+                gi.GIstatus = GroupbuyingItemStatus.success.value
+
+        return Success('加入成功')
+
+    @token_required
     def start(self):
         """用户发起拼团"""
+        # data = parameter_required(('prid', ))
+        user = get_current_user()
+        now = datetime.datetime.now()
+        # now = datetime.datetime.now()
+        data = parameter_required(('gbid',))
+
+        gb = GroupBuying.query.filter(
+            GroupBuying.GBstarttime <= now,
+            GroupBuying.GBendtime >= now,
+            GroupBuying.GBid == data.get('gbid'),
+            GroupBuying.isdelete == False).first_('活动已结束')
+        self._check_bgtimes(data.get('gbid'), user.USid, gb.GBtimes)
+
+        with db.auto_commit():
+            gi = GroupbuyingItem.create({
+                'GIid': str(uuid.uuid1()),
+                'GBid': gb.GBid,
+                'GIstatus': GroupbuyingItemStatus.underway.value
+            })
+            gu = GroupbuyingUser.create({
+                'GUid': str(uuid.uuid1()),
+                'GIid': gi.GIid,
+                'USid': user.USid,
+                'UShead': user.USheader,
+                'USname': user.USname,
+                'GUstatus': GroupbuyingUserStatus.waitpay.value
+            })
+            # TODO 异步任务，24h 修改超时状态
+            db.session.add(gi)
+            db.session.add(gu)
+
         return Success('发起拼团成功')
 
+    @token_required
     def pay(self):
         """下单"""
         return Success('购买成功')
+
+    def get_groupbuying_items(self):
+        # now = datetime.datetime.now()
+        data = parameter_required(('gbid', ))
+        gb = GroupBuying.query.filter(
+            GroupBuying.GBid == data.get('gbid'),
+            GroupBuying.GBstatus == GroupBuyingStatus.agree.value
+        ).first_('活动已结束')
+        filter_args = {
+            GroupbuyingItem.isdelete == False,
+            GroupbuyingItem.GBid == gb.GBid
+        }
+        if not is_admin():
+            filter_args.add(GroupbuyingItem.GIstatus == GroupbuyingItemStatus.underway.value)
+
+        gi_list = GroupbuyingItem.query.filter(*filter_args).all()
+        for gi in gi_list:
+            gu_list = GroupbuyingUser.query.filter(
+                GroupbuyingUser.isdelete == False, GroupbuyingUser.GIid == gi.GIid).all()
+            gi.fill('gus', gu_list)
+            gi.fill('gistatus_en', GroupbuyingItemStatus(gi.GIstatus).name)
+            gi.fill('gistatus_zh', GroupbuyingItemStatus(gi.GIstatus).zh_value)
+            end_time = gi.createtime + datetime.timedelta(days=1)
+            gi.fill('countdown', self._get_timedelta(end_time))
+            gi.fill('gbnum', gb.GBnum)
+        return Success(data=gi_list)
 
     def _update_groupbuying_product(self, data, gb):
         gp = GroupbuyingProduct.query.filter(
@@ -190,7 +303,7 @@ class CGroupBuying(CProduct):
             product = Products.query.filter(
                 Products.PRid == gp.PRid,
                 Products.isdelete == False,
-                Products.PRstatus == ProductStatus.usual.value).first('商品未上架')
+                Products.PRstatus == ProductStatus.usual.value).first_('商品未上架')
             self._check_product(product.PRid, gb.GBstarttime, gb.GBendtime, gp.GPid)
             # 先把库存还回去
             product.PRstocks += gp.GPstocks
@@ -208,9 +321,9 @@ class CGroupBuying(CProduct):
             skus = data.get('skus', [])
             for sku in skus:
                 # sku 修改。如果不修改，需要返回原来的参数，要不然无法记录库存
-                if 'gsid' in sku:
+                gsid = sku.get('gsid')
+                if gsid:
                     # gs修改
-                    gsid = sku.get('gsid')
                     gs_model = GroupbuyingSku.query.filter(
                         GroupbuyingSku.GSid == sku.get('gsid'), GroupbuyingSku.isdelete == False).first_('参数异常')
 
@@ -232,13 +345,14 @@ class CGroupBuying(CProduct):
                     else:
                         # 不对库存修改 直接累计
                         gp_stock += gs_model.SKUgpStock
-                else:
+                elif sku.get('skuid'):
                     # 新增活动sku
                     sku_model = ProductSku.query.filter(
                         ProductSku.SKUid == sku.get('skuid'), ProductSku.isdelete == False).first_('参数缺失')
                     if not self._check_pint(sku.get('skugpstock')):
                         raise ParamsError('库存数目异常')
-                    assert int(sku.get('skugpstock')) < sku_model.SKUstock, '{}库存不足'.format(sku.get('skuid'))
+                    assert int(sku.get('skugpstock')) <= sku_model.SKUstock, \
+                        '{}库存不足 需要 {} 原有 {}'.format(sku.get('skuid'), sku.get('skugpstock'), sku_model.SKUstock)
 
                     self._check_price(sku.get('skugpprice'))
 
@@ -256,6 +370,9 @@ class CGroupBuying(CProduct):
                     gp_stock += gs_model.SKUgpStock
                     new_sku.append(gsid)
                     instance_list.append(gs_model)
+                else:
+                    # 没有gsid 和skuid  则视为无效修改
+                    continue
                 # 记录有效gsid
                 sku_ids.append(gsid)
             # 记录废弃sku并返回库存
@@ -281,7 +398,8 @@ class CGroupBuying(CProduct):
                 product.PRid, gp_stock, product.PRstocks))
             current_app.logger.info(
                 '删除了{}个不需要的sku, 更新了{}个sku, 添加了{}个新sku '.format(len(old_skus), len(sku_ids), len(new_sku)))
-
+            if gp_stock == 0:
+                self._delete_gb(gb, not_update=False)
         db.session.add_all(instance_list)
 
     def _add_groupbuying_product(self, data, product, gbid):
@@ -364,10 +482,11 @@ class CGroupBuying(CProduct):
         assert re.match(r'^\d+\.?\d*$', str(price)) and float(price) > 0, '活动价不合理'
 
     def _check_stocks(self, stock, product):
-        assert str(stock).isdigit() and stock < product.PRstocks, '商品库存不足'
+        assert str(stock).isdigit() and stock <= product.PRstocks, '商品库存不足'
 
     def _fill_product(self, product, gp, gb):
         product.fill('GPprice', gp.GPprice)
+        product.fill('GBid', gb.GBid)
         product.fill('GPfreight', gp.GPfreight)
         product.fill('GPstocks', gp.GPstocks)
         product.fill('countdown', self._get_timedelta(gb.GBendtime))
@@ -386,6 +505,8 @@ class CGroupBuying(CProduct):
             if not sku:
                 continue
             sku.SKUattriteDetail = json.loads(sku.SKUattriteDetail)
+            sku.fill('skugpprice', gs.SKUgpPrice)
+            sku.fill('skugpstocks', gs.SKUgpStock)
             sku_value_item.append(sku.SKUattriteDetail)
             sku_price.append(sku.SKUprice)
             skus.append(sku)
@@ -400,9 +521,11 @@ class CGroupBuying(CProduct):
         sku_value_instance = ProductSkuValue.query.filter_by_({
             'PRid': product.PRid
         }).first()
+        attribute_product = json.loads(product.PRattribute) \
+            if isinstance(product.PRattribute, str) else product.PRattribute
         if not sku_value_instance:
             sku_value_item_reverse = []
-            for index, name in enumerate(product.PRattribute):
+            for index, name in enumerate(attribute_product):
                 value = list(set([attribute[index] for attribute in sku_value_item]))
                 value = sorted(value)
                 temp = {
@@ -415,7 +538,41 @@ class CGroupBuying(CProduct):
             pskuvalue = json.loads(sku_value_instance.PSKUvalue)
             for index, value in enumerate(pskuvalue):
                 sku_value_item_reverse.append({
-                    'name': product.PRattribute[index],
+                    'name': attribute_product[index],
                     'value': value
                 })
+
+        product.fill('prattribute', json.loads(product.PRattribute or "[]"))
         product.fill('SkuValue', sku_value_item_reverse)
+        product.fill('prsalesvalue', max(product.PRsalesValueFake, product.PRsalesValue))
+
+    def _delete_gb(self, gb, not_update=True):
+        gb.isdelete = True
+        # todo  清除库存
+        if not_update:
+            gp = GroupbuyingProduct.query.filter(
+                GroupbuyingProduct.GBid == gb.GBid, GroupbuyingProduct.isdelete == False).first()
+            gs_list = GroupbuyingSku.query.filter(
+                GroupbuyingSku.isdelete == False, GroupbuyingSku.GPid == gp.GPid
+            ).all()
+            # 开始退还库存
+            product = Products.query.filter(Products.isdelete == False, Products.PRid == gp.PRid).first()
+            if not product:
+                return
+            product.PRstocks += gp.GPstocks
+            gp.isdelete = True
+            for gs in gs_list:
+                sku = ProductSku.query.filter(ProductSku.isdelete == False, ProductSku.SKUid == gs.SKUid).first()
+                if not sku:
+                    continue
+                sku.SKUstock += gs.SKUgpStock
+
+    def _check_bgtimes(self, gbid, usid, times):
+        gu_times = GroupbuyingUser.query.join(GroupbuyingItem, GroupbuyingItem.GIid == GroupbuyingUser.GIid).join(
+            GroupBuying, GroupBuying.GBid == GroupbuyingItem.GBid).filter(
+            GroupbuyingUser.GUstatus >= GroupbuyingUserStatus.waitpay.value,
+            GroupbuyingItem.GIstatus <= GroupbuyingItemStatus.cancel.value,
+            GroupbuyingUser.USid == usid, GroupBuying.GBid == gbid).count()
+
+        if gu_times >= times:
+            raise ParamsError('已超出限购次数')

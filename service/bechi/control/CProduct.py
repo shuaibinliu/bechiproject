@@ -9,7 +9,7 @@ from sqlalchemy import or_, and_
 from bechi.common.error_response import NotFound, DumpliError, AuthorityError, ParamsError
 from bechi.common.params_validates import parameter_required
 from bechi.common.success_response import Success
-from bechi.common.token_handler import is_admin, is_tourist, token_required
+from bechi.common.token_handler import is_admin, is_tourist, token_required, admin_required
 from bechi.config.enums import ProductStatus, ProductFrom, UserSearchHistoryType
 # from bechi.control.BaseControl import BASEAPPROVAL
 from bechi.extensions.register_ext import db
@@ -178,7 +178,7 @@ class CProduct():
                 db.session.add(instance)
         return Success(data=products)
 
-    # @token_required
+    @admin_required
     def add_product(self):
         # if is_admin():
         product_from = ProductFrom.platform.value
@@ -192,7 +192,7 @@ class CProduct():
         pcid = data.get('pcid')  # 3级分类id
         images = data.get('images')
         skus = data.get('skus')
-        prfeatured = data.get('prfeatured', False)
+        # prfeatured = data.get('prfeatured', False)
         prdescription = data.get('prdescription')  # 简要描述
         # PCtype 是表示分类等级， 该系统只有两级
         product_category = ProductCategory.query.filter(
@@ -264,7 +264,7 @@ class CProduct():
                 'PRattribute': json.dumps(prattribute),
                 'PRremarks': prmarks,
                 'PRfrom': product_from,
-                'CreaterId': "bechiadmin",
+                'CreaterId': request.user.id,
                 'PRsalesValueFake': int(data.get('prsalesvaluefake')),
                 'PRdescription': prdescription,  # 描述
                 # 'PRfeatured': prfeatured,  # 是否为精选
@@ -308,7 +308,7 @@ class CProduct():
 
         return Success('添加成功', {'prid': prid})
 
-    # @token_required
+    @admin_required
     def update_product(self):
         """更新商品"""
         data = parameter_required(('prid',))
@@ -483,7 +483,7 @@ class CProduct():
 
         return Success('更新成功')
 
-    # @token_required
+    @admin_required
     def resubmit_product(self):
         data = parameter_required(('prid',))
         product = Products.query.filter(Products.isdelete == False,
@@ -494,7 +494,7 @@ class CProduct():
 
         return Success('申请成功')
 
-    # @token_required
+    @admin_required
     def delete(self):
         data = parameter_required(('prids',))
         prids = data.get('prids')
@@ -508,7 +508,7 @@ class CProduct():
             ).delete_(synchronize_session=False)
         return Success('删除成功')
 
-    # @token_required
+    @admin_required
     def off_shelves(self):
         """下架"""
         data = parameter_required(('prids',))

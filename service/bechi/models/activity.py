@@ -30,6 +30,7 @@ class GroupBuying(Base):
     GBstatus = Column(Integer, default=1, comment='拼团状态 1 审核中 10 上线 -10 撤销 -20 拒绝 -30 下架')
     GBreason = Column(Text, comment='拒绝理由')
     GBstart = Column(String(64), comment='发起人')
+    GBtimes = Column(Integer, default=1, nullable=False, comment='限购次数')
 
 
 class GroupbuyingItem(Base):
@@ -50,8 +51,9 @@ class GroupbuyingUser(Base):
     GUid = Column(String(64), primary_key=True)
     GIid = Column(String(64), comment='参与的拼团团体')
     USid = Column(String(64), comment='参与的用户')
-    UShead = Column(Text, comment='用户头像')
+    UShead = Column(Text, url=True, comment='用户头像')
     USname = Column(Text, comment='用户昵称')
+    GUstatus = Column(Integer, default=1, comment='拼团状态 1 支付中 10 成功 -10 异常')
 
 
 class GroupbuyingProduct(Base):

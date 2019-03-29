@@ -10,6 +10,7 @@ class AGroupbuying(Resource):
         apis = {
             'list': self.cgroupbuying.list,
             'list_groupbuying': self.cgroupbuying.list_groupbuying,
+            'list_groupbuyingitems': self.cgroupbuying.get_groupbuying_items,
         }
         return apis
 
@@ -18,5 +19,7 @@ class AGroupbuying(Resource):
             'create': self.cgroupbuying.create,
             'update': self.cgroupbuying.update,
             'confirm': self.cgroupbuying.confirm,
+            'start': self.cgroupbuying.start,
+            'join': self.cgroupbuying.join,
         }
         return apis
