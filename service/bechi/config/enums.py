@@ -560,8 +560,23 @@ class MaterialCommentStatus(Enum):
     all = None, '全部'
 
 
+class GroupbuyingItemStatus(Enum):
+    underway = 1, '拼团中'
+    success = 2, '拼团成功'
+    cancel = 3, '取消'
+    end = 4, '超时结束'
+
+
+class GroupbuyingUserStatus(Enum):
+    waitpay = 1, '待支付'
+    success = 10, '成功'
+    anomaly = -10, '异常中止'
+
+
 # class MagicBoxStatus()
 if __name__ == '__main__':
     print(UserSearchHistoryType.news.value)
+    import flask
+    flask.ep
     # import
 
