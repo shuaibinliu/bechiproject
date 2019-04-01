@@ -9,7 +9,7 @@ from sqlalchemy import or_, and_
 from bechi.common.error_response import NotFound, DumpliError, AuthorityError, ParamsError
 from bechi.common.params_validates import parameter_required
 from bechi.common.success_response import Success
-from bechi.common.token_handler import is_admin, is_tourist, token_required
+from bechi.common.token_handler import is_admin, is_tourist, token_required, admin_required
 from bechi.config.enums import ProductStatus, ProductFrom, UserSearchHistoryType
 # from bechi.control.BaseControl import BASEAPPROVAL
 from bechi.extensions.register_ext import db
@@ -18,7 +18,7 @@ from bechi.models.activity import GroupBuying, GroupbuyingProduct, GroupbuyingSk
 from bechi.models.product import Products, ProductBrand, ProductSkuValue, ProductItems, ProductCategory, ProductImage, \
     ProductSku
 
-
+# todo 获取接口增加权限筛选 创建更新删除接口增加管理员权限把控
 class CProduct():
 
     def get_product(self):
@@ -119,7 +119,7 @@ class CProduct():
         pcid = pcid.split('|') if pcid else []
         pcids = self._sub_category_id(pcid)
         pcids = list(set(pcids))
-
+        skusn = data.get('skusn')
         prstatus = data.get('prstatus')
         if not is_admin():
             prstatus = prstatus or 'usual'  # 商品状态
@@ -138,6 +138,9 @@ class CProduct():
         ]
 
         query = Products.query.filter(Products.isdelete == False)
+        if skusn:
+            query = query.outerjoin(ProductSku, ProductSku.PRid == Products.PRid
+                                    ).filter(ProductSku.isdelete == False, ProductSku.SKUsn.ilike("%{}%".format(skusn)))
         products = query.filter_(*filter_args).order_by(by_order).all_with_page()
         # 填充
         for product in products:
@@ -175,9 +178,8 @@ class CProduct():
                 db.session.add(instance)
         return Success(data=products)
 
-    # @token_required
+    @admin_required
     def add_product(self):
-        # TOdo  增加虚拟销量
         # if is_admin():
         product_from = ProductFrom.platform.value
         # else:
@@ -190,14 +192,15 @@ class CProduct():
         pcid = data.get('pcid')  # 3级分类id
         images = data.get('images')
         skus = data.get('skus')
-        prfeatured = data.get('prfeatured', False)
+        # prfeatured = data.get('prfeatured', False)
         prdescription = data.get('prdescription')  # 简要描述
         # PCtype 是表示分类等级， 该系统只有两级
         product_category = ProductCategory.query.filter(
             ProductCategory.PCid == pcid, ProductCategory.isdelete == False
         ).first_('指定目录不存在')
         if data.get('prsalesvaluefake'):
-            if not re.match(r'^\d+$', str(data.get('prsalesvaluefake'))):
+            # if not re.match(r'^\d+$', str(data.get('prsalesvaluefake'))):
+            if not self._check_pint(data.get('prsalesvaluefake')):
                 raise ParamsError('虚拟销量数据异常')
         else:
             data['prsalesvaluefake'] = 0
@@ -261,7 +264,7 @@ class CProduct():
                 'PRattribute': json.dumps(prattribute),
                 'PRremarks': prmarks,
                 'PRfrom': product_from,
-                'CreaterId': "bechiadmin",
+                'CreaterId': request.user.id,
                 'PRsalesValueFake': int(data.get('prsalesvaluefake')),
                 'PRdescription': prdescription,  # 描述
                 # 'PRfeatured': prfeatured,  # 是否为精选
@@ -305,7 +308,7 @@ class CProduct():
 
         return Success('添加成功', {'prid': prid})
 
-    # @token_required
+    @admin_required
     def update_product(self):
         """更新商品"""
         data = parameter_required(('prid',))
@@ -318,7 +321,8 @@ class CProduct():
         skus = data.get('skus')
         prdescription = data.get('prdescription')
         if data.get('prsalesvaluefake'):
-            if not re.match(r'^\d+$', str(data.get('prsalesvaluefake'))):
+            # if not re.match(r'^\d+$', str(data.get('prsalesvaluefake'))):
+            if not self._check_pint(data.get('prsalesvaluefake')):
                 raise ParamsError('虚拟销量数据异常')
         else:
             data['prsalesvaluefake'] = 0
@@ -479,7 +483,7 @@ class CProduct():
 
         return Success('更新成功')
 
-    # @token_required
+    @admin_required
     def resubmit_product(self):
         data = parameter_required(('prid',))
         product = Products.query.filter(Products.isdelete == False,
@@ -490,7 +494,7 @@ class CProduct():
 
         return Success('申请成功')
 
-    # @token_required
+    @admin_required
     def delete(self):
         data = parameter_required(('prids',))
         prids = data.get('prids')
@@ -504,7 +508,7 @@ class CProduct():
             ).delete_(synchronize_session=False)
         return Success('删除成功')
 
-    # @token_required
+    @admin_required
     def off_shelves(self):
         """下架"""
         data = parameter_required(('prids',))
@@ -662,10 +666,12 @@ class CProduct():
         ).first()
 
         if gp:
+            gb = GroupBuying.query.filter(GroupBuying.GBid == gp.GBid, GroupBuying.isdelete == False).first_('数据异常')
             product.fill('isgroupbuying', True)
             product.fill('GPprice', gp.GPprice)
             product.fill('GPstocks', gp.GPstpcks)
             product.fill('GPfreight', gp.GPfreight)
+            product.fill('countdown', self._get_timedelta(gb.GBendtime))
             for sku in product.skus:
                 gs = GroupbuyingSku.query.filter(
                     GroupbuyingSku.GPid == gp.GPid,
@@ -678,3 +684,22 @@ class CProduct():
                 sku.fill('SKUgpStock', gs.SKUgpStock)
         else:
             product.fill('isgroupbuying', False)
+
+    def _get_timedelta(self, endtime):
+        now = datetime.datetime.now()
+        countdown = endtime - now
+        hours = str(countdown.days * 24 + (countdown.seconds // 3600))
+        minutes = str((countdown.seconds % 3600) // 60)
+        seconds = str((countdown.seconds % 3600) % 60)
+
+        return "{}:{}:{}".format('0' + hours if len(hours) == 1 else hours,
+                                 '0' + minutes if len(minutes) == 1 else minutes,
+                                 '0' + seconds if len(seconds) == 1 else seconds)
+
+    def _check_int(self, num):
+        # 校验整数
+        return re.match(r'^-?\d+$', str(num))
+
+    def _check_pint(self, num):
+        # 校验正整数
+        return re.match(r'^\d+$', str(num))

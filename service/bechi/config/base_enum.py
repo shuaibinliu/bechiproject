@@ -59,5 +59,5 @@ if __name__ == '__main__':
        ProductStatus.auditing.zh_value   --> 审核中
        ProductStatus.auditing.value --> 10
     """
-    print(ProductStatus.auditing.zh_value)
+    print(ProductStatus(20).value)
 

@@ -22,6 +22,7 @@ from bechi.api.v1.AFile import AFile
 # from bechi.api.v1.AProduct import AProduct
 # from bechi.api.v1.ARefund import ARefund
 # from bechi.api.v1.ASku import ASku
+from bechi.api.v1.AGroupbuying import AGroupbuying
 from bechi.api.v1.AProduct import AProduct
 from bechi.api.v1.AProductarea import AProductarea
 from bechi.api.v1.AUser import AUser
@@ -117,6 +118,7 @@ def register_v1(app):
     v1.add_url_rule('/file/<string:file>', view_func=AFile.as_view('file'))
     v1.add_url_rule('/category/<string:category>', view_func=ACategory.as_view('category'))
     v1.add_url_rule('/area/<string:area>', view_func=AProductarea.as_view('area'))
+    v1.add_url_rule('/groupbuying/<string:groupbuying>', view_func=AGroupbuying.as_view('groupbuying'))
     # v1.add_url_rule('/cart/<string:cart>', view_func=ACart.as_view('cart'))
     # v1.add_url_rule('/order/<string:order>', view_func=AOrder.as_view('order'))
     # v1.add_url_rule('/sku/<string:sku>', view_func=ASku.as_view('sku'))

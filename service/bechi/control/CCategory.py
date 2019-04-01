@@ -10,7 +10,7 @@ from bechi.models.product import ProductCategory, Products
 
 
 class CCategory():
-    # @admin_required
+    @admin_required
     def create(self):
         data = parameter_required(('pcdesc', 'pcname', 'pcpic'))
         pcdesc = data.get('pcdesc')
@@ -65,7 +65,7 @@ class CCategory():
             self._sub_category(category, deep)
         return Success(data=categorys)
 
-    # @admin_required
+    @admin_required
     def delete(self):
         data = parameter_required(('pcid', ))
         pcid = data.get('pcid')
@@ -80,7 +80,7 @@ class CCategory():
 
         return Success('删除成功')
 
-    # @admin_required
+    @admin_required
     def update(self):
         """更新分类"""
         data = parameter_required(('pcid', 'pcdesc', 'pcname', 'pcpic'))
