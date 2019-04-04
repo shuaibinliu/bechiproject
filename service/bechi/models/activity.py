@@ -93,3 +93,23 @@ class GroupbuyingSku(Base):
     SKUgpPrice = Column(DECIMAL(precision=28, scale=2), nullable=False, comment='拼团价格')
     SKUgpStock = Column(BIGINT, comment='拼团库存')
 
+
+class MultiplePromotions(Base):
+    __tablename__ = 'MultiplePromotions'
+    MPid = Column(String(64), primary_key=True)
+    # todo 待确认
+
+
+class Bargin(Base):
+    __tablename__ = 'Bargin'
+    BGid = Column(String(64), primary_key=True)
+    BGstarttime = Column(DateTime, comment='起始时间')
+    BGendtime = Column(DateTime, comment='结束时间')
+
+
+class BarginProduct(Base):
+    BPid = Column(String(64), primary_key=True)
+    PRid = Column(String(64), comment='关联商品')
+    BGprice = Column(DECIMAL(precision=28, scale=2), nullable=False, comment='砍价基础价格')
+    BGstock = Column(Integer, comment='砍价库存')
+
