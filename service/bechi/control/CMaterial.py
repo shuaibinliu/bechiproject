@@ -66,9 +66,15 @@ class CMaterial(object):
         """创建分类"""
         self._check_admin(request.user.id)
         data = parameter_required(('mcname', 'mctype', ))
-        mctype = data.get('mctype', 0)
         mcsort = data.get('mcsort')
         mcparentid = data.get('mcparentid')
+        mctype = data.get('mctype')
+        try:
+            mctype = CategoryType(mctype)
+        except Exception as e:
+            raise e
+            mctype = 0
+        mctype = data.get('mctype')
         with db.auto_commit():
             if mctype == CategoryType.material.value:
                 if not mcparentid:
@@ -105,11 +111,11 @@ class CMaterial(object):
     @admin_required
     def update_category(self):
         """更新/删除分类"""
-        self._check_user(request.user.id)
+        self._check_admin(request.user.id)
         data = parameter_required(('mcid', 'mcname', 'mctype'))
-        mcid, mctype, mcsort = data.get('mcid'), data.get('mctype', 0), data.get('mcsort')
+        mcid, mctype, mcsort = data.get('mcid'), data.get('mctype', 0), data.get('mcsort', 0)
         mcisdelete = data.get('mcisdelete')
-        category = MaterialCategory.query.filter_by_(MCid=mcid).frist_('要修改的分类不存在')
+        category = MaterialCategory.query.filter_by_(MCid=mcid, MCtype=mctype).first_('要修改的分类不存在')
         if mctype == CategoryType.material.value:
             if mcid in ['case_community', 'knowledge_classroom', 'disease_treatment', 'health_encyclopedia', 'hot_topic']:
                 raise ParamsError('系统内置分类不允许更改')
@@ -158,9 +164,9 @@ class CMaterial(object):
                 raise ParamsError('虚拟量只能输入数字')
 
         if mtpicture and isinstance(mtpicture, list):
-            mtpicture = json.dump(mtpicture)
+            mtpicture = json.dumps(mtpicture)
         if mtvideo and isinstance(mtvideo, list):
-            mtvideo = json.dump(mtvideo)
+            mtvideo = json.dumps(mtvideo)
         with db.auto_commit():
             material_dict = {'MTauthor': admin.ADid,
                              'MTauthorname': admin.ADname,
@@ -187,6 +193,9 @@ class CMaterial(object):
                     material_instance.update(material_dict)
                     ids = list()
                     for mcid in mcids:
+                        if mcid in ['case_community', 'knowledge_classroom', 'disease_treatment',
+                                    'health_encyclopedia', 'hot_topic']:
+                            continue
                         ids.append(mcid)
                         mcr = MaterialCategoryRelated.query.filter_by(MCid=mcid, MTid=mtid, isdelete=False).first()
                         if not mcr:
@@ -196,10 +205,12 @@ class CMaterial(object):
                                                                           )
                                            )
                     MaterialCategoryRelated.query.filter(MaterialCategoryRelated.MCid.notin_(ids),
-                                                         MaterialCategoryRelated.isdelete == False).delete_()
+                                                         MaterialCategoryRelated.isdelete == False
+                                                         ).delete_(synchronize_session=False)
 
             else:
-                material_dict['MTid'] = str(uuid.uuid1())
+                mtid = str(uuid.uuid1())
+                material_dict['MTid'] = mtid
                 material_instance = Material.create(material_dict)
                 for mcid in mcids:
                     db.session.add(MaterialCategoryRelated.create({'MCRid': str(uuid.uuid1()),
@@ -208,7 +219,7 @@ class CMaterial(object):
                                                                   )
                                    )
             db.session.add(material_instance)
-        return Success('修改成功', data=dict(MTid=mtid or material_dict['MTid']))
+        return Success('修改成功', data=dict(mtid=mtid))
 
     def get_material_list(self):
         """素材列表"""
@@ -302,11 +313,11 @@ class CMaterial(object):
         mtid = args.get('mtid')
         material = Material.query.filter_by_(MTid=mtid).first_('文章不存在或已删除')
 
-        pictures = material.MTpicture
+        pictures = getattr(material, 'MTpicture', '')
         pictures = json.loads(pictures) if pictures and isinstance(pictures, str) else None
         material.fill('mtpicture', pictures)
 
-        videos = material.MTvideo
+        videos = getattr(material, 'MTvideo', '')
         videos = json.loads(videos) if videos and isinstance(videos, str) else None
         material.fill('mtvideo', videos)
 
